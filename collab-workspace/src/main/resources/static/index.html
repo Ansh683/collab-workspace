@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real-Time Editor</title>
+</head>
+<body>
+
+<h2>Real-Time Collaborative Editor</h2>
+
+<input type="text" id="username" placeholder="Enter your name">
+<br><br>
+
+<input type="number" id="docId" placeholder="Enter Document ID">
+<button onclick="loadDocument()">Load Document</button>
+
+<br><br>
+
+<p id="status"></p>
+
+<textarea id="editor" rows="10" cols="50"></textarea>
+
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        let stompClient = null;
+        let currentDocId = null;
+        let typingTimeout;
+
+        function connect() {
+            let socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function () {
+                console.log("Connected");
+
+                // DOCUMENT UPDATES
+                stompClient.subscribe('/topic/documents', function (message) {
+                    let data = JSON.parse(message.body);
+
+                    if (data.documentId == currentDocId) {
+                        document.getElementById("editor").value = data.content;
+                        document.getElementById("status").innerText =
+                            data.username + " is editing...";
+                    }
+                });
+
+                // TYPING INDICATOR
+                stompClient.subscribe('/topic/typing', function (message) {
+                    let data = JSON.parse(message.body);
+
+                    if (data.documentId == currentDocId) {
+                        let status = document.getElementById("status");
+
+                        status.innerText = data.username + " is typing...";
+
+                        clearTimeout(typingTimeout);
+
+                        typingTimeout = setTimeout(() => {
+                            status.innerText = "";
+                        }, 1500);
+                    }
+                });
+
+            });
+        }
+
+        function loadDocument() {
+            let id = document.getElementById("docId").value;
+            currentDocId = id;
+
+            fetch(`/documents/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("editor").value = data.content;
+                });
+        }
+
+        function sendUpdate(content) {
+            let username = document.getElementById("username").value;
+
+            if (!currentDocId || !username) return;
+
+            stompClient.send("/app/edit", {}, JSON.stringify({
+                documentId: currentDocId,
+                content: content,
+                username: username
+            }));
+        }
+
+        document.getElementById("editor").addEventListener("input", function () {
+            let content = this.value;
+
+            sendUpdate(content);
+
+            let username = document.getElementById("username").value;
+
+            if (username && currentDocId) {
+                stompClient.send("/app/typing", {}, JSON.stringify({
+                    documentId: currentDocId,
+                    username: username
+                }));
+            }
+        });
+
+        connect();
+    });
+</script>
+</body>
+</html>

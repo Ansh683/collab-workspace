@@ -1,0 +1,25 @@
+package com.ansh.collab.model;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Document {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+
+    @Column(columnDefinition = "TEXT")
+    private String content;
+
+    // GETTERS
+    public Long getId() { return id; }
+    public String getTitle() { return title; }
+    public String getContent() { return content; }
+
+    // SETTERS
+    public void setTitle(String title) { this.title = title; }
+    public void setContent(String content) { this.content = content; }
+}
