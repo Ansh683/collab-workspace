@@ -6,12 +6,14 @@
 <body>
 
 <h2>Real-Time Collaborative Editor</h2>
+<h3>Active Users:</h3>
+<ul id="users"></ul>
 
 <input type="text" id="username" placeholder="Enter your name">
 <br><br>
 
 <input type="number" id="docId" placeholder="Enter Document ID">
-<button onclick="loadDocument()">Load Document</button>
+<button id="loadBtn">Load Document</button>
 
 <br><br>
 
@@ -28,13 +30,27 @@
         let stompClient = null;
         let currentDocId = null;
         let typingTimeout;
-
+        document.getElementById("loadBtn").addEventListener("click", loadDocument);
         function connect() {
             let socket = new SockJS('/ws');
             stompClient = Stomp.over(socket);
 
             stompClient.connect({}, function () {
                 console.log("Connected");
+
+                // ACTIVE USERS
+                stompClient.subscribe('/topic/users', function (message) {
+                    let users = JSON.parse(message.body);
+                    let list = document.getElementById("users");
+
+                    list.innerHTML = "";
+
+                    users.forEach(user => {
+                        let li = document.createElement("li");
+                        li.innerText = user;
+                        list.appendChild(li);
+                    });
+                });
 
                 // DOCUMENT UPDATES
                 stompClient.subscribe('/topic/documents', function (message) {
@@ -69,13 +85,22 @@
 
         function loadDocument() {
             let id = document.getElementById("docId").value;
+            let username = document.getElementById("username").value;
+
             currentDocId = id;
 
+            if (username) {
+                stompClient.send("/app/join", {}, JSON.stringify({
+                    username: username
+                }));
+            }
+
             fetch(`/documents/${id}`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById("editor").value = data.content;
-                });
+    .then(res => res.json())
+    .then(data => {
+        console.log("DATA RECEIVED:", data);   // 👈 IMPORTANT
+        document.getElementById("editor").value = data.content;
+    });
         }
 
         function sendUpdate(content) {
@@ -100,6 +125,17 @@
             if (username && currentDocId) {
                 stompClient.send("/app/typing", {}, JSON.stringify({
                     documentId: currentDocId,
+                    username: username
+                }));
+            }
+        });
+
+        // LEAVE EVENT (only once)
+        window.addEventListener("beforeunload", function () {
+            let username = document.getElementById("username").value;
+
+            if (username) {
+                stompClient.send("/app/leave", {}, JSON.stringify({
                     username: username
                 }));
             }
