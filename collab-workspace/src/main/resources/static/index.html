@@ -2,24 +2,88 @@
 <html>
 <head>
     <title>Real-Time Editor</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .left, .right {
+            flex: 1;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-top: 10px;
+        }
+
+        input, button {
+            margin: 5px 5px 5px 0;
+            padding: 6px;
+        }
+
+        ul {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        button {
+            margin-left: 10px;
+            cursor: pointer;
+        }
+
+        #status {
+            margin-top: 10px;
+            font-style: italic;
+        }
+    </style>
 </head>
+
 <body>
 
 <h2>Real-Time Collaborative Editor</h2>
-<h3>Active Users:</h3>
-<ul id="users"></ul>
 
 <input type="text" id="username" placeholder="Enter your name">
-<br><br>
-
 <input type="number" id="docId" placeholder="Enter Document ID">
 <button id="loadBtn">Load Document</button>
 
-<br><br>
-
 <p id="status"></p>
 
-<textarea id="editor" rows="10" cols="50"></textarea>
+<div class="container">
+
+    <!-- LEFT -->
+    <div class="left">
+        <h3>Editor</h3>
+        <textarea id="editor"></textarea>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right">
+        <h3>Active Users</h3>
+        <ul id="users"></ul>
+
+        <h3>Version History</h3>
+        <ul id="versions"></ul>
+    </div>
+
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
@@ -30,7 +94,9 @@
         let stompClient = null;
         let currentDocId = null;
         let typingTimeout;
+
         document.getElementById("loadBtn").addEventListener("click", loadDocument);
+
         function connect() {
             let socket = new SockJS('/ws');
             stompClient = Stomp.over(socket);
@@ -38,7 +104,7 @@
             stompClient.connect({}, function () {
                 console.log("Connected");
 
-                // ACTIVE USERS
+                // USERS
                 stompClient.subscribe('/topic/users', function (message) {
                     let users = JSON.parse(message.body);
                     let list = document.getElementById("users");
@@ -63,7 +129,7 @@
                     }
                 });
 
-                // TYPING INDICATOR
+                // TYPING
                 stompClient.subscribe('/topic/typing', function (message) {
                     let data = JSON.parse(message.body);
 
@@ -79,7 +145,6 @@
                         }, 1500);
                     }
                 });
-
             });
         }
 
@@ -96,11 +161,51 @@
             }
 
             fetch(`/documents/${id}`)
-    .then(res => res.json())
-    .then(data => {
-        console.log("DATA RECEIVED:", data);   // 👈 IMPORTANT
-        document.getElementById("editor").value = data.content;
-    });
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("editor").value = data.content;
+                });
+
+            loadVersions();
+        }
+
+        function loadVersions() {
+            if (!currentDocId) return;
+
+            fetch(`/documents/${currentDocId}/versions`)
+                .then(res => res.json())
+                .then(data => {
+                    let list = document.getElementById("versions");
+                    list.innerHTML = "";
+
+                    data.forEach(version => {
+                        let li = document.createElement("li");
+
+                        li.innerText =
+                            `Version ${version.id} | ${version.username} | ${version.timestamp}`;
+
+                        let btn = document.createElement("button");
+                        btn.innerText = "Restore";
+
+                        btn.addEventListener("click", function () {
+                            restoreVersion(version.id);
+                        });
+
+                        li.appendChild(btn);
+                        list.appendChild(li);
+                    });
+                });
+        }
+
+        function restoreVersion(versionId) {
+            fetch(`/documents/${currentDocId}/restore/${versionId}`, {
+                method: "PUT"
+            })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("editor").value = data.content;
+                    loadVersions();
+                });
         }
 
         function sendUpdate(content) {
@@ -130,7 +235,6 @@
             }
         });
 
-        // LEAVE EVENT (only once)
         window.addEventListener("beforeunload", function () {
             let username = document.getElementById("username").value;
 
@@ -144,5 +248,6 @@
         connect();
     });
 </script>
+
 </body>
 </html>

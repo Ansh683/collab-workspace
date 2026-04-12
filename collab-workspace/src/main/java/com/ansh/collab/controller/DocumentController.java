@@ -21,7 +21,20 @@ public class DocumentController {
         this.repo = repo;
         this.versionRepo = versionRepo;
     }
+    @PutMapping("/{docId}/restore/{versionId}")
+    public Document restoreVersion(@PathVariable Long docId, @PathVariable Long versionId) {
 
+        Document doc = repo.findById(docId)
+                .orElseThrow(() -> new RuntimeException("Document not found"));
+
+        DocumentVersion version = versionRepo.findById(versionId)
+                .orElseThrow(() -> new RuntimeException("Version not found"));
+
+        // restore old content
+        doc.setContent(version.getContent());
+
+        return repo.save(doc);
+    }
     @GetMapping("/{id}/versions")
     public List<DocumentVersion> getVersions(@PathVariable Long id) {
         return versionRepo.findByDocumentId(id);
