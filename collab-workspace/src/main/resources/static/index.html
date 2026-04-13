@@ -6,50 +6,101 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
+            background-color: #f5f7fa;
         }
 
         h2 {
             text-align: center;
+            padding: 15px;
+            background: #4CAF50;
+            color: white;
+            margin: 0;
+        }
+
+        .top-bar {
+            padding: 15px;
+            background: white;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            border-bottom: 1px solid #ddd;
         }
 
         .container {
             display: flex;
+            justify-content: center;
             gap: 20px;
+            padding: 20px;
         }
 
-        .left, .right {
+        .left {
+            flex: 2;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .right {
             flex: 1;
+            max-width: 300px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
 
         textarea {
             width: 100%;
-            height: 200px;
-            margin-top: 10px;
+            height: 250px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            padding: 10px;
         }
 
-        input, button {
-            margin: 5px 5px 5px 0;
-            padding: 6px;
+        input {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 8px 12px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
         }
 
         ul {
-            border: 1px solid #ccc;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             padding: 10px;
-            height: 200px;
+            height: 180px;
             overflow-y: auto;
         }
 
         li {
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
 
-        button {
-            margin-left: 10px;
-            cursor: pointer;
+        .toolbar {
+            margin-bottom: 10px;
+        }
+
+        .toolbar select,
+        .toolbar input {
+            margin-right: 10px;
         }
 
         #status {
+            text-align: center;
             margin-top: 10px;
             font-style: italic;
         }
@@ -60,9 +111,11 @@
 
 <h2>Real-Time Collaborative Editor</h2>
 
-<input type="text" id="username" placeholder="Enter your name">
-<input type="number" id="docId" placeholder="Enter Document ID">
-<button id="loadBtn">Load Document</button>
+<div class="top-bar">
+    <input type="text" id="username" placeholder="Enter your name">
+    <input type="number" id="docId" placeholder="Enter Document ID">
+    <button id="loadBtn">Load Document</button>
+</div>
 
 <p id="status"></p>
 
@@ -71,6 +124,20 @@
     <!-- LEFT -->
     <div class="left">
         <h3>Editor</h3>
+
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+            <label>Size:</label>
+            <select id="fontSize">
+                <option value="14px">Small</option>
+                <option value="18px">Medium</option>
+                <option value="24px">Large</option>
+            </select>
+
+            <label>Color:</label>
+            <input type="color" id="fontColor">
+        </div>
+
         <textarea id="editor"></textarea>
     </div>
 
@@ -97,6 +164,15 @@
 
         document.getElementById("loadBtn").addEventListener("click", loadDocument);
 
+        // TEXT FORMATTING
+        document.getElementById("fontSize").addEventListener("change", function () {
+            document.getElementById("editor").style.fontSize = this.value;
+        });
+
+        document.getElementById("fontColor").addEventListener("input", function () {
+            document.getElementById("editor").style.color = this.value;
+        });
+
         function connect() {
             let socket = new SockJS('/ws');
             stompClient = Stomp.over(socket);
@@ -104,11 +180,9 @@
             stompClient.connect({}, function () {
                 console.log("Connected");
 
-                // USERS
                 stompClient.subscribe('/topic/users', function (message) {
                     let users = JSON.parse(message.body);
                     let list = document.getElementById("users");
-
                     list.innerHTML = "";
 
                     users.forEach(user => {
@@ -118,7 +192,6 @@
                     });
                 });
 
-                // DOCUMENT UPDATES
                 stompClient.subscribe('/topic/documents', function (message) {
                     let data = JSON.parse(message.body);
 
@@ -129,7 +202,6 @@
                     }
                 });
 
-                // TYPING
                 stompClient.subscribe('/topic/typing', function (message) {
                     let data = JSON.parse(message.body);
 
@@ -139,7 +211,6 @@
                         status.innerText = data.username + " is typing...";
 
                         clearTimeout(typingTimeout);
-
                         typingTimeout = setTimeout(() => {
                             status.innerText = "";
                         }, 1500);
@@ -182,10 +253,11 @@
                         let li = document.createElement("li");
 
                         li.innerText =
-                            `Version ${version.id} | ${version.username} | ${version.timestamp}`;
+                            `V${version.id} | ${version.username}`;
 
                         let btn = document.createElement("button");
                         btn.innerText = "Restore";
+                        btn.style.backgroundColor = "#2196F3";
 
                         btn.addEventListener("click", function () {
                             restoreVersion(version.id);
@@ -201,11 +273,11 @@
             fetch(`/documents/${currentDocId}/restore/${versionId}`, {
                 method: "PUT"
             })
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById("editor").value = data.content;
-                    loadVersions();
-                });
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("editor").value = data.content;
+                loadVersions();
+            });
         }
 
         function sendUpdate(content) {
