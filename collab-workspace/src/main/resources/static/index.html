@@ -4,150 +4,345 @@
     <title>Real-Time Editor</title>
 
     <style>
+        * { box-sizing: border-box; }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             background-color: #f5f7fa;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        h2 {
-            text-align: center;
-            padding: 15px;
+        /* ── TOP BAR ── */
+        .top-bar {
+            padding: 12px 20px;
+            background: #4CAF50;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+        }
+
+        .top-bar h2 {
+            margin: 0;
+            font-size: 18px;
+            flex: 1;
+        }
+
+        .top-bar input {
+            padding: 7px 10px;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            width: 180px;
+        }
+
+        /* ── MAIN LAYOUT ── */
+        .main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 14px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #newDocBtn {
+            padding: 5px 10px;
+            font-size: 20px;
+            line-height: 1;
+            border: none;
             background: #4CAF50;
             color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #newDocBtn:hover { background: #45a049; }
+
+        #docList {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 0;
+            list-style: none;
             margin: 0;
+            border: none;
+            border-radius: 0;
+            height: auto;
         }
 
-        .top-bar {
-            padding: 15px;
-            background: white;
+        #docList li {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            border-left: 3px solid transparent;
+            margin-bottom: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #docList li:hover {
+            background: #f0faf0;
+        }
+
+        #docList li.active {
+            background: #e8f5e9;
+            border-left-color: #4CAF50;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        /* ── EDITOR AREA ── */
+        .editor-area {
+            flex: 1;
             display: flex;
-            gap: 10px;
-            justify-content: center;
-            border-bottom: 1px solid #ddd;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        .container {
+        #status {
+            text-align: center;
+            padding: 5px;
+            font-style: italic;
+            color: #888;
+            font-size: 13px;
+            background: #fffde7;
+            min-height: 28px;
+        }
+
+        .editor-body {
             display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 20px;
+            flex: 1;
+            gap: 16px;
+            padding: 16px;
+            overflow: hidden;
         }
 
+        /* ── LEFT PANEL (editor) ── */
         .left {
             flex: 2;
             background: white;
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
         }
 
-        .right {
-            flex: 1;
-            max-width: 300px;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        .left h3 { margin: 0 0 10px 0; font-size: 15px; color: #444; }
+
+        .toolbar {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        textarea {
-            width: 100%;
-            height: 250px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
+        .toolbar label { font-size: 13px; color: #555; }
 
-        input {
-            padding: 8px;
+        .toolbar select {
+            padding: 5px;
             border-radius: 5px;
             border: 1px solid #ccc;
         }
 
+        .toolbar input[type="color"] {
+            padding: 2px;
+            height: 32px;
+            width: 40px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+
+        #docTitle {
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-bottom: 2px solid #eee;
+            padding: 6px 2px;
+            margin-bottom: 10px;
+            width: 100%;
+            outline: none;
+            color: #333;
+        }
+
+        #docTitle:focus { border-bottom-color: #4CAF50; }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            resize: none;
+            font-size: 14px;
+            line-height: 1.6;
+            min-height: 300px;
+        }
+
+        /* ── RIGHT PANEL ── */
+        .right {
+            flex: 1;
+            max-width: 260px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+        }
+
+        .right h3 { margin: 0 0 6px 0; font-size: 14px; color: #444; }
+
+        .right ul {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 8px;
+            height: 160px;
+            overflow-y: auto;
+            list-style: none;
+            margin: 0;
+        }
+
+        .right ul li {
+            margin-bottom: 8px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .right ul li span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ── BUTTONS ── */
         button {
-            padding: 8px 12px;
+            padding: 6px 11px;
             border: none;
             background-color: #4CAF50;
             color: white;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 13px;
         }
 
-        button:hover {
-            background-color: #45a049;
-        }
+        button:hover { background-color: #45a049; }
 
-        ul {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            height: 180px;
-            overflow-y: auto;
-        }
-
-        li {
-            margin-bottom: 8px;
-        }
-
-        .toolbar {
-            margin-bottom: 10px;
-        }
-
-        .toolbar select,
-        .toolbar input {
-            margin-right: 10px;
-        }
-
-        #status {
+        .placeholder-msg {
+            color: #aaa;
+            font-size: 13px;
             text-align: center;
-            margin-top: 10px;
-            font-style: italic;
+            margin-top: 40px;
         }
     </style>
 </head>
 
 <body>
 
-<h2>Real-Time Collaborative Editor</h2>
-
+<!-- TOP BAR -->
 <div class="top-bar">
-    <input type="text" id="username" placeholder="Enter your name">
-    <input type="number" id="docId" placeholder="Enter Document ID">
-    <button id="loadBtn">Load Document</button>
+    <h2>📝 Collab Workspace</h2>
+    <span id="currentUser" style="font-size:14px; opacity:0.9;"></span>
+    <a href="/auth/logout" style="padding:7px 14px; background:rgba(255,255,255,0.2);
+       color:white; border-radius:5px; text-decoration:none; font-size:13px;">
+        Logout
+    </a>
 </div>
 
-<p id="status"></p>
+<!-- MAIN -->
+<div class="main">
 
-<div class="container">
-
-    <!-- LEFT -->
-    <div class="left">
-        <h3>Editor</h3>
-
-        <!-- TOOLBAR -->
-        <div class="toolbar">
-            <label>Size:</label>
-            <select id="fontSize">
-                <option value="14px">Small</option>
-                <option value="18px">Medium</option>
-                <option value="24px">Large</option>
-            </select>
-
-            <label>Color:</label>
-            <input type="color" id="fontColor">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>Documents</h3>
+            <button id="newDocBtn" title="New Document">+</button>
         </div>
-
-        <textarea id="editor"></textarea>
+        <ul id="docList"></ul>
     </div>
 
-    <!-- RIGHT -->
-    <div class="right">
-        <h3>Active Users</h3>
-        <ul id="users"></ul>
+    <!-- EDITOR AREA -->
+    <div class="editor-area">
 
-        <h3>Version History</h3>
-        <ul id="versions"></ul>
+        <p id="status"></p>
+
+        <div class="editor-body">
+
+            <!-- LEFT: editor -->
+            <div class="left" id="editorPanel">
+                <p class="placeholder-msg" id="placeholderMsg">← Select or create a document to get started</p>
+
+                <div id="editorContent" style="display:none; flex-direction:column; flex:1;">
+                    <h3>Editor</h3>
+
+                    <input type="text" id="docTitle" placeholder="Document title...">
+
+                    <div class="toolbar">
+                        <label>Size:</label>
+                        <select id="fontSize">
+                            <option value="14px">Small</option>
+                            <option value="18px">Medium</option>
+                            <option value="24px">Large</option>
+                        </select>
+
+                        <label>Color:</label>
+                        <input type="color" id="fontColor">
+                    </div>
+
+                    <textarea id="editor" placeholder="Start typing..."></textarea>
+                </div>
+            </div>
+
+            <!-- RIGHT: users + versions -->
+            <div class="right">
+                <div>
+                    <h3>👥 Active Users</h3>
+                    <ul id="users"></ul>
+                </div>
+
+                <div>
+                    <h3>🕒 Version History</h3>
+                    <ul id="versions"></ul>
+                </div>
+            </div>
+
+        </div>
     </div>
 
 </div>
@@ -160,11 +355,247 @@
 
         let stompClient = null;
         let currentDocId = null;
+        let currentUser = null;   // set from /auth/me on load — never trusted from the client
         let typingTimeout;
+        let typingDebounce;
+        let editDebounce;
 
-        document.getElementById("loadBtn").addEventListener("click", loadDocument);
+        // ── FETCH LOGGED-IN USER ──
+        fetch("/auth/me")
+            .then(res => {
+                if (!res.ok) { window.location.href = "/login.html"; return null; }
+                return res.json();
+            })
+            .then(data => {
+                if (!data) return;
+                currentUser = data.username;
+                document.getElementById("currentUser").innerText = "👤 " + currentUser;
+            });
 
-        // TEXT FORMATTING
+        // ── CONNECT WEBSOCKET ──
+        let connected = false;
+        let onConnectCallbacks = [];
+
+        function connect() {
+            let socket = new SockJS('/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+
+            stompClient.connect({}, function () {
+                connected = true;
+                // Run any callbacks that were waiting for the connection
+                onConnectCallbacks.forEach(cb => cb());
+                onConnectCallbacks = [];
+            });
+        }
+
+        function whenConnected(cb) {
+            if (connected) cb();
+            else onConnectCallbacks.push(cb);
+        }
+
+        // Subscriptions for the current document — stored so we can unsubscribe when switching docs
+        let usersSub = null;
+        let documentsSub = null;
+        let typingSub = null;
+
+        function subscribeToDoc(docId) {
+            // Unsubscribe from previous doc's topics
+            if (usersSub)     { usersSub.unsubscribe();     usersSub = null; }
+            if (documentsSub) { documentsSub.unsubscribe(); documentsSub = null; }
+            if (typingSub)    { typingSub.unsubscribe();    typingSub = null; }
+
+            // Subscribe to this document's scoped topics
+            usersSub = stompClient.subscribe('/topic/users/' + docId, function (message) {
+                let users = JSON.parse(message.body);
+                let list = document.getElementById("users");
+                list.innerHTML = "";
+                users.forEach(user => {
+                    let li = document.createElement("li");
+                    li.innerHTML = `<span>🟢 ${user}</span>`;
+                    list.appendChild(li);
+                });
+            });
+
+            documentsSub = stompClient.subscribe('/topic/documents/' + docId, function (message) {
+                let data = JSON.parse(message.body);
+
+                if (data.username !== currentUser) {
+                    document.getElementById("editor").value = data.content;
+                    document.getElementById("status").innerText = data.username + " just edited...";
+                    loadVersions();
+                }
+            });
+
+            typingSub = stompClient.subscribe('/topic/typing/' + docId, function (message) {
+                let data = JSON.parse(message.body);
+
+                if (data.username !== currentUser) {
+                    let status = document.getElementById("status");
+                    status.innerText = data.username + " is typing...";
+                    clearTimeout(typingTimeout);
+                    typingTimeout = setTimeout(() => { status.innerText = ""; }, 1500);
+                }
+            });
+        }
+
+        // ── LOAD ALL DOCUMENTS INTO SIDEBAR ──
+        function loadDocList() {
+            fetch('/documents')
+                .then(res => res.json())
+                .then(docs => {
+                    let list = document.getElementById("docList");
+                    list.innerHTML = "";
+
+                    if (docs.length === 0) {
+                        list.innerHTML = '<li style="color:#aaa; padding:12px; font-size:13px;">No documents yet</li>';
+                        return;
+                    }
+
+                    docs.forEach(doc => {
+                        let li = document.createElement("li");
+                        li.dataset.id = doc.id;
+                        if (doc.id == currentDocId) li.classList.add("active");
+
+                        // Doc name — clicking opens it
+                        let nameSpan = document.createElement("span");
+                        let isOwner = doc.createdBy === currentUser;
+                        nameSpan.innerHTML = `${doc.title || "Untitled"}
+                            <span style="font-size:10px; color:${isOwner ? '#4CAF50' : '#aaa'};
+                                margin-left:4px;">${isOwner ? "✦ mine" : "shared"}</span>`;
+                        nameSpan.style.flex = "1";
+                        nameSpan.style.overflow = "hidden";
+                        nameSpan.style.textOverflow = "ellipsis";
+                        nameSpan.style.whiteSpace = "nowrap";
+                        nameSpan.style.cursor = "pointer";
+                        nameSpan.addEventListener("click", () => openDocument(doc.id));
+
+                        li.style.display = "flex";
+                        li.style.alignItems = "center";
+                        li.appendChild(nameSpan);
+
+                        // Delete button — only shown for docs the current user owns
+                        if (isOwner) {
+                            let delBtn = document.createElement("button");
+                            delBtn.innerText = "🗑";
+                            delBtn.title = "Delete document";
+                            delBtn.style.background = "transparent";
+                            delBtn.style.color = "#aaa";
+                            delBtn.style.padding = "2px 5px";
+                            delBtn.style.fontSize = "14px";
+                            delBtn.style.flexShrink = "0";
+                            delBtn.style.opacity = "0";
+                            delBtn.addEventListener("click", (e) => {
+                                e.stopPropagation();
+                                deleteDocument(doc.id, doc.title);
+                            });
+                            li.addEventListener("mouseenter", () => delBtn.style.opacity = "1");
+                            li.addEventListener("mouseleave", () => delBtn.style.opacity = "0");
+                            li.appendChild(delBtn);
+                        }
+
+                        list.appendChild(li);
+                    });
+                });
+        }
+
+        // ── DELETE DOCUMENT ──
+        function deleteDocument(id, title) {
+            if (!confirm(`Delete "${title || 'Untitled'}"? This cannot be undone.`)) return;
+
+            fetch(`/documents/${id}`, { method: "DELETE" })
+                .then(() => {
+                    // If we just deleted the open doc, clear the editor
+                    if (id == currentDocId) {
+                        currentDocId = null;
+                        document.getElementById("editor").value = "";
+                        document.getElementById("docTitle").value = "";
+                        document.getElementById("editorContent").style.display = "none";
+                        document.getElementById("placeholderMsg").style.display = "";
+                        document.getElementById("users").innerHTML = "";
+                        document.getElementById("versions").innerHTML = "";
+                    }
+                    loadDocList();
+                });
+        }
+
+
+        // ── OPEN A DOCUMENT ──
+        function openDocument(id) {
+            // Leave previous doc
+            if (currentDocId && currentUser) {
+                stompClient.send("/app/leave", {}, JSON.stringify({
+                    documentId: currentDocId,
+                    username: currentUser
+                }));
+            }
+
+            currentDocId = id;
+
+            // Highlight in sidebar
+            document.querySelectorAll("#docList li").forEach(li => {
+                li.classList.toggle("active", li.dataset.id == id);
+            });
+
+            // Show editor panel
+            document.getElementById("placeholderMsg").style.display = "none";
+            document.getElementById("editorContent").style.display = "flex";
+
+            // Fetch and populate
+            fetch(`/documents/${id}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("docTitle").value = data.title || "";
+                    document.getElementById("editor").value = data.content || "";
+                });
+
+            // Subscribe + join only once WebSocket is ready
+            whenConnected(() => {
+                subscribeToDoc(id);
+                if (currentUser) {
+                    stompClient.send("/app/join", {}, JSON.stringify({
+                        documentId: id,
+                        username: currentUser
+                    }));
+                }
+            });
+
+            loadVersions();
+        }
+
+        // ── CREATE NEW DOCUMENT ──
+        document.getElementById("newDocBtn").addEventListener("click", function () {
+            let title = prompt("Document name:", "Untitled");
+            if (title === null) return; // user cancelled
+
+            fetch('/documents', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: title || "Untitled", content: "" })
+            })
+            .then(res => res.json())
+            .then(doc => {
+                loadDocList();
+                setTimeout(() => openDocument(doc.id), 100);
+            });
+        });
+
+        // ── TITLE CHANGE ──
+        document.getElementById("docTitle").addEventListener("change", function () {
+            if (!currentDocId) return;
+            let newTitle = this.value;
+
+            fetch(`/documents/${currentDocId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: newTitle,
+                    content: document.getElementById("editor").value
+                })
+            }).then(() => loadDocList());
+        });
+
+        // ── TEXT FORMATTING ──
         document.getElementById("fontSize").addEventListener("change", function () {
             document.getElementById("editor").style.fontSize = this.value;
         });
@@ -173,71 +604,21 @@
             document.getElementById("editor").style.color = this.value;
         });
 
-        function connect() {
-            let socket = new SockJS('/ws');
-            stompClient = Stomp.over(socket);
-
-            stompClient.connect({}, function () {
-                console.log("Connected");
-
-                stompClient.subscribe('/topic/users', function (message) {
-                    let users = JSON.parse(message.body);
-                    let list = document.getElementById("users");
-                    list.innerHTML = "";
-
-                    users.forEach(user => {
-                        let li = document.createElement("li");
-                        li.innerText = user;
-                        list.appendChild(li);
-                    });
-                });
-
-                stompClient.subscribe('/topic/documents', function (message) {
-                    let data = JSON.parse(message.body);
-
-                    if (data.documentId == currentDocId) {
-                        document.getElementById("editor").value = data.content;
-                        document.getElementById("status").innerText =
-                            data.username + " is editing...";
-                    }
-                });
-
-                stompClient.subscribe('/topic/typing', function (message) {
-                    let data = JSON.parse(message.body);
-
-                    if (data.documentId == currentDocId) {
-                        let status = document.getElementById("status");
-
-                        status.innerText = data.username + " is typing...";
-
-                        clearTimeout(typingTimeout);
-                        typingTimeout = setTimeout(() => {
-                            status.innerText = "";
-                        }, 1500);
-                    }
-                });
-            });
-        }
-
-        function loadDocument() {
-            let id = document.getElementById("docId").value;
-            let username = document.getElementById("username").value;
-
-            currentDocId = id;
-
-            if (username) {
-                stompClient.send("/app/join", {}, JSON.stringify({
-                    username: username
-                }));
+        // ── LOAD VERSIONS ──
+        function formatTimestamp(ts) {
+            if (!ts) return "";
+            // ts arrives as [year, month, day, hour, minute, second] array from Java LocalDateTime
+            let d;
+            if (Array.isArray(ts)) {
+                // months in JS are 0-indexed, Java sends 1-indexed
+                d = new Date(ts[0], ts[1] - 1, ts[2], ts[3], ts[4], ts[5] || 0);
+            } else {
+                d = new Date(ts);
             }
-
-            fetch(`/documents/${id}`)
-                .then(res => res.json())
-                .then(data => {
-                    document.getElementById("editor").value = data.content;
-                });
-
-            loadVersions();
+            return d.toLocaleString([], {
+                month: "short", day: "numeric",
+                hour: "2-digit", minute: "2-digit"
+            });
         }
 
         function loadVersions() {
@@ -249,75 +630,102 @@
                     let list = document.getElementById("versions");
                     list.innerHTML = "";
 
-                    data.forEach(version => {
+                    if (data.length === 0) {
+                        list.innerHTML = '<li style="color:#aaa; font-size:12px;">No versions yet</li>';
+                        return;
+                    }
+
+                    // Show newest first
+                    [...data].reverse().forEach(version => {
                         let li = document.createElement("li");
 
-                        li.innerText =
-                            `V${version.id} | ${version.username}`;
+                        let label = document.createElement("span");
+                        let time = formatTimestamp(version.timestamp);
+                        label.innerText = `${version.username}`;
+                        label.title = time ? `Saved: ${time}` : `Version ${version.id}`;
+                        if (time) {
+                            label.innerHTML = `<strong>${version.username}</strong><br>
+                                <span style="font-size:11px;color:#999;">${time}</span>`;
+                        }
 
                         let btn = document.createElement("button");
                         btn.innerText = "Restore";
                         btn.style.backgroundColor = "#2196F3";
+                        btn.style.flexShrink = "0";
+                        btn.addEventListener("click", () => restoreVersion(version.id));
 
-                        btn.addEventListener("click", function () {
-                            restoreVersion(version.id);
-                        });
-
+                        li.appendChild(label);
                         li.appendChild(btn);
                         list.appendChild(li);
                     });
                 });
         }
 
+        // ── RESTORE VERSION ──
         function restoreVersion(versionId) {
-            fetch(`/documents/${currentDocId}/restore/${versionId}`, {
-                method: "PUT"
-            })
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById("editor").value = data.content;
-                loadVersions();
-            });
+            fetch(`/documents/${currentDocId}/restore/${versionId}`, { method: "PUT" })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("editor").value = data.content;
+                    loadVersions();
+                });
         }
 
+        // ── SEND EDIT VIA WEBSOCKET ──
         function sendUpdate(content) {
-            let username = document.getElementById("username").value;
-
-            if (!currentDocId || !username) return;
+            if (!currentDocId || !currentUser) return;
 
             stompClient.send("/app/edit", {}, JSON.stringify({
                 documentId: currentDocId,
                 content: content,
-                username: username
+                username: currentUser
             }));
+
+            loadVersions();
         }
 
+        // ── EDITOR INPUT (debounced) ──
         document.getElementById("editor").addEventListener("input", function () {
             let content = this.value;
+            let status = document.getElementById("status");
 
-            sendUpdate(content);
-
-            let username = document.getElementById("username").value;
-
-            if (username && currentDocId) {
-                stompClient.send("/app/typing", {}, JSON.stringify({
-                    documentId: currentDocId,
-                    username: username
-                }));
+            if (currentDocId && currentUser) {
+                status.innerText = "Saving...";
             }
+
+            // Typing indicator: debounced at 300ms
+            clearTimeout(typingDebounce);
+            typingDebounce = setTimeout(() => {
+                if (currentUser && currentDocId) {
+                    stompClient.send("/app/typing", {}, JSON.stringify({
+                        documentId: currentDocId,
+                        username: currentUser
+                    }));
+                }
+            }, 300);
+
+            // Actual save: debounced at 800ms
+            clearTimeout(editDebounce);
+            editDebounce = setTimeout(() => {
+                sendUpdate(content);
+                status.innerText = "Saved ✓";
+                setTimeout(() => { status.innerText = ""; }, 1500);
+            }, 800);
         });
 
+        // ── LEAVE ON CLOSE ──
         window.addEventListener("beforeunload", function () {
-            let username = document.getElementById("username").value;
-
-            if (username) {
+            if (currentUser && currentDocId) {
                 stompClient.send("/app/leave", {}, JSON.stringify({
-                    username: username
+                    documentId: currentDocId,
+                    username: currentUser
                 }));
             }
         });
 
+        // ── INIT ──
         connect();
+        loadDocList();
     });
 </script>
 

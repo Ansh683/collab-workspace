@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Collab Workspace – Login</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 40px;
+            width: 360px;
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 6px;
+            font-size: 20px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+            margin-bottom: 28px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            color: #aaa;
+            font-size: 14px;
+            font-weight: bold;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus { border-color: #4CAF50; }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 11px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: background 0.2s;
+        }
+
+        button[type="submit"]:hover { background: #45a049; }
+
+        .message {
+            text-align: center;
+            font-size: 13px;
+            margin-top: 14px;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .message.error { background: #fdecea; color: #c62828; }
+        .message.success { background: #e8f5e9; color: #2e7d32; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="logo">📝</div>
+    <h2>Collab Workspace</h2>
+    <p class="subtitle">Real-time collaborative document editing</p>
+
+    <div class="tabs">
+        <div class="tab active" id="loginTab" onclick="showTab('login')">Login</div>
+        <div class="tab" id="registerTab" onclick="showTab('register')">Register</div>
+    </div>
+
+    <!-- LOGIN FORM — submitted natively to Spring Security -->
+    <div id="loginForm">
+        <form method="POST" action="/auth/login">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Enter username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Enter password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <div id="loginMsg" class="message" style="display:none;"></div>
+    </div>
+
+    <!-- REGISTER FORM — submitted via fetch -->
+    <div id="registerForm" style="display:none;">
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="regUsername" placeholder="Choose a username">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="regPassword" placeholder="At least 4 characters">
+        </div>
+        <button type="submit" onclick="register()">Create Account</button>
+        <div id="registerMsg" class="message" style="display:none;"></div>
+    </div>
+</div>
+
+<script>
+    // Show error/logout messages from URL params
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("error")) {
+        let msg = document.getElementById("loginMsg");
+        msg.style.display = "block";
+        msg.className = "message error";
+        msg.innerText = "Invalid username or password.";
+    }
+    if (params.get("logout")) {
+        let msg = document.getElementById("loginMsg");
+        msg.style.display = "block";
+        msg.className = "message success";
+        msg.innerText = "You have been logged out.";
+    }
+
+    function showTab(tab) {
+        document.getElementById("loginForm").style.display   = tab === "login"    ? "" : "none";
+        document.getElementById("registerForm").style.display = tab === "register" ? "" : "none";
+        document.getElementById("loginTab").classList.toggle("active",    tab === "login");
+        document.getElementById("registerTab").classList.toggle("active", tab === "register");
+    }
+
+    function register() {
+        let username = document.getElementById("regUsername").value.trim();
+        let password = document.getElementById("regPassword").value;
+        let msg = document.getElementById("registerMsg");
+
+        if (!username || !password) {
+            msg.style.display = "block";
+            msg.className = "message error";
+            msg.innerText = "Please fill in all fields.";
+            return;
+        }
+
+        fetch("/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        })
+        .then(res => res.text())
+        .then(text => {
+            msg.style.display = "block";
+            if (text === "Registered successfully") {
+                msg.className = "message success";
+                msg.innerText = "Account created! You can now log in.";
+                setTimeout(() => showTab("login"), 1500);
+            } else {
+                msg.className = "message error";
+                msg.innerText = text;
+            }
+        });
+    }
+
+    // Allow Enter key on register form
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" && document.getElementById("registerForm").style.display !== "none") {
+            register();
+        }
+    });
+</script>
+
+</body>
+</html>
