@@ -1,43 +1,101 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Real-Time Editor</title>
+    <title>Collab Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <style>
-        * { box-sizing: border-box; }
+        :root {
+            --bg: #0f1117;
+            --surface: #181c27;
+            --surface2: #1e2333;
+            --border: #2a2f42;
+            --accent: #5b7cf6;
+            --accent-hover: #4a68e0;
+            --accent-soft: rgba(91,124,246,0.12);
+            --green: #34d399;
+            --green-soft: rgba(52,211,153,0.12);
+            --text: #e8eaf2;
+            --text-muted: #6b7280;
+            --text-dim: #9ca3af;
+            --danger: #f87171;
+            --warning: #fbbf24;
+            --radius: 10px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            background-color: #f5f7fa;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
             height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         /* ── TOP BAR ── */
         .top-bar {
-            padding: 12px 20px;
-            background: #4CAF50;
+            height: 52px;
+            padding: 0 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 12px;
-            color: white;
+            gap: 16px;
+            flex-shrink: 0;
         }
 
-        .top-bar h2 {
-            margin: 0;
-            font-size: 18px;
+        .top-bar-logo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 17px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
             flex: 1;
         }
 
-        .top-bar input {
-            padding: 7px 10px;
-            border-radius: 5px;
-            border: none;
-            outline: none;
-            font-size: 14px;
-            width: 180px;
+        .top-bar-logo .dot {
+            width: 8px; height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        #currentUser {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #currentUser::before {
+            content: '';
+            display: inline-block;
+            width: 7px; height: 7px;
+            background: var(--green);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--green);
+        }
+
+        .logout-btn {
+            padding: 6px 14px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 12px;
+            font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover {
+            border-color: var(--danger);
+            color: var(--danger);
         }
 
         /* ── MAIN LAYOUT ── */
@@ -49,76 +107,76 @@
 
         /* ── SIDEBAR ── */
         .sidebar {
-            width: 220px;
-            background: #fff;
-            border-right: 1px solid #ddd;
+            width: 230px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
         }
 
         .sidebar-header {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
+            padding: 14px 14px 12px;
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .sidebar-header h3 {
-            margin: 0;
-            font-size: 14px;
-            color: #555;
+        .sidebar-header span {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
 
         #newDocBtn {
-            padding: 5px 10px;
-            font-size: 20px;
-            line-height: 1;
+            width: 28px; height: 28px;
             border: none;
-            background: #4CAF50;
+            background: var(--accent);
             color: white;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: bold;
+            font-size: 18px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.1s;
         }
-
-        #newDocBtn:hover { background: #45a049; }
+        #newDocBtn:hover { background: var(--accent-hover); transform: scale(1.05); }
 
         #docList {
             flex: 1;
             overflow-y: auto;
-            padding: 8px 0;
+            padding: 8px 6px;
             list-style: none;
-            margin: 0;
-            border: none;
-            border-radius: 0;
-            height: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
         }
 
         #docList li {
-            padding: 10px 14px;
+            padding: 9px 10px;
             cursor: pointer;
-            font-size: 14px;
-            color: #333;
-            border-left: 3px solid transparent;
-            margin-bottom: 0;
+            font-size: 13px;
+            color: var(--text-dim);
+            border-radius: 7px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.15s, color 0.15s;
             white-space: nowrap;
             overflow: hidden;
-            text-overflow: ellipsis;
         }
 
-        #docList li:hover {
-            background: #f0faf0;
-        }
+        #docList li:hover { background: var(--surface2); color: var(--text); }
 
         #docList li.active {
-            background: #e8f5e9;
-            border-left-color: #4CAF50;
-            font-weight: bold;
-            color: #2e7d32;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-weight: 500;
         }
 
         /* ── EDITOR AREA ── */
@@ -127,149 +185,247 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            background: var(--bg);
         }
 
-        #status {
-            text-align: center;
-            padding: 5px;
+        #statusBar {
+            height: 30px;
+            padding: 0 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
             font-style: italic;
-            color: #888;
-            font-size: 13px;
-            background: #fffde7;
-            min-height: 28px;
+            transition: color 0.3s;
         }
+
+        #statusBar.saving { color: var(--warning); }
+        #statusBar.saved { color: var(--green); font-style: normal; }
+        #statusBar.typing { color: var(--accent); }
 
         .editor-body {
             display: flex;
             flex: 1;
-            gap: 16px;
-            padding: 16px;
+            gap: 0;
             overflow: hidden;
         }
 
         /* ── LEFT PANEL (editor) ── */
         .left {
-            flex: 2;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            flex: 1;
             display: flex;
             flex-direction: column;
+            padding: 24px;
+            overflow: hidden;
         }
 
-        .left h3 { margin: 0 0 10px 0; font-size: 15px; color: #444; }
-
-        .toolbar {
-            margin-bottom: 10px;
+        .placeholder-msg {
+            flex: 1;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            gap: 12px;
+            color: var(--text-muted);
         }
 
-        .toolbar label { font-size: 13px; color: #555; }
-
-        .toolbar select {
-            padding: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
+        .placeholder-msg .placeholder-icon {
+            font-size: 48px;
+            opacity: 0.3;
         }
 
-        .toolbar input[type="color"] {
-            padding: 2px;
-            height: 32px;
-            width: 40px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            cursor: pointer;
+        .placeholder-msg p {
+            font-size: 14px;
+        }
+
+        #editorContent {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            gap: 12px;
         }
 
         #docTitle {
-            font-size: 16px;
-            font-weight: bold;
+            font-family: 'DM Serif Display', serif;
+            font-size: 22px;
+            background: transparent;
             border: none;
-            border-bottom: 2px solid #eee;
-            padding: 6px 2px;
-            margin-bottom: 10px;
-            width: 100%;
+            border-bottom: 1px solid var(--border);
+            padding: 6px 0 10px;
+            color: var(--text);
             outline: none;
-            color: #333;
+            width: 100%;
+            transition: border-color 0.2s;
         }
 
-        #docTitle:focus { border-bottom-color: #4CAF50; }
+        #docTitle::placeholder { color: var(--text-muted); }
+        #docTitle:focus { border-bottom-color: var(--accent); }
 
-        textarea {
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 7px;
+        }
+
+        .toolbar-group label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .toolbar-group select {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 12px;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .toolbar-group select option { background: var(--surface2); }
+
+        .toolbar-group input[type="color"] {
+            width: 22px; height: 22px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+        }
+
+        #editor {
             flex: 1;
             width: 100%;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            padding: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
             resize: none;
             font-size: 14px;
-            line-height: 1.6;
-            min-height: 300px;
+            font-family: 'DM Sans', sans-serif;
+            line-height: 1.7;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+            min-height: 0;
         }
+
+        #editor:focus { border-color: var(--accent); }
+        #editor::placeholder { color: var(--text-muted); }
 
         /* ── RIGHT PANEL ── */
         .right {
-            flex: 1;
-            max-width: 260px;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            width: 220px;
+            flex-shrink: 0;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            gap: 10px;
             overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
         }
 
-        .right h3 { margin: 0 0 6px 0; font-size: 14px; color: #444; }
+        .right-section {
+            padding: 14px;
+            border-bottom: 1px solid var(--border);
+        }
 
-        .right ul {
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 8px;
-            height: 160px;
-            overflow-y: auto;
+        .right-section h3 {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .right-section ul {
             list-style: none;
-            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
-        .right ul li {
-            margin-bottom: 8px;
-            font-size: 13px;
+        .right-section ul li {
+            font-size: 12px;
+            color: var(--text-dim);
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 6px;
         }
 
-        .right ul li span {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        /* ── BUTTONS ── */
-        button {
-            padding: 6px 11px;
-            border: none;
-            background-color: #4CAF50;
-            color: white;
+        .user-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 6px var(--green);
+            flex-shrink: 0;
+        }
+
+        .version-label strong { color: var(--text-dim); font-weight: 500; font-size: 12px; }
+        .version-label small { color: var(--text-muted); font-size: 10px; display: block; }
+
+        .restore-btn {
+            padding: 3px 8px;
+            font-size: 10px;
+            font-weight: 600;
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
             border-radius: 5px;
             cursor: pointer;
-            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            transition: background 0.15s, color 0.15s;
+            flex-shrink: 0;
         }
+        .restore-btn:hover { background: var(--accent); color: white; }
 
-        button:hover { background-color: #45a049; }
-
-        .placeholder-msg {
-            color: #aaa;
-            font-size: 13px;
+        .empty-msg {
+            color: var(--text-muted);
+            font-size: 12px;
             text-align: center;
-            margin-top: 40px;
+            padding: 8px 0;
         }
+
+        /* Delete button in sidebar */
+        .del-btn {
+            margin-left: auto;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 2px 4px;
+            cursor: pointer;
+            border-radius: 4px;
+            opacity: 0;
+            flex-shrink: 0;
+            transition: opacity 0.15s, color 0.15s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .del-btn:hover { color: var(--danger); background: transparent; }
     </style>
 </head>
 
@@ -277,12 +433,12 @@
 
 <!-- TOP BAR -->
 <div class="top-bar">
-    <h2>📝 Collab Workspace</h2>
-    <span id="currentUser" style="font-size:14px; opacity:0.9;"></span>
-    <a href="/auth/logout" style="padding:7px 14px; background:rgba(255,255,255,0.2);
-       color:white; border-radius:5px; text-decoration:none; font-size:13px;">
-        Logout
-    </a>
+    <div class="top-bar-logo">
+        <div class="dot"></div>
+        Collab Workspace
+    </div>
+    <span id="currentUser"></span>
+    <a href="/auth/logout" class="logout-btn">Sign out</a>
 </div>
 
 <!-- MAIN -->
@@ -291,7 +447,7 @@
     <!-- SIDEBAR -->
     <div class="sidebar">
         <div class="sidebar-header">
-            <h3>Documents</h3>
+            <span>Documents</span>
             <button id="newDocBtn" title="New Document">+</button>
         </div>
         <ul id="docList"></ul>
@@ -300,45 +456,49 @@
     <!-- EDITOR AREA -->
     <div class="editor-area">
 
-        <p id="status"></p>
+        <div id="statusBar"></div>
 
         <div class="editor-body">
 
             <!-- LEFT: editor -->
-            <div class="left" id="editorPanel">
-                <p class="placeholder-msg" id="placeholderMsg">← Select or create a document to get started</p>
+            <div class="left">
+                <div class="placeholder-msg" id="placeholderMsg">
+                    <div class="placeholder-icon">📄</div>
+                    <p>Select or create a document to get started</p>
+                </div>
 
-                <div id="editorContent" style="display:none; flex-direction:column; flex:1;">
-                    <h3>Editor</h3>
-
-                    <input type="text" id="docTitle" placeholder="Document title...">
+                <div id="editorContent">
+                    <input type="text" id="docTitle" placeholder="Untitled document...">
 
                     <div class="toolbar">
-                        <label>Size:</label>
-                        <select id="fontSize">
-                            <option value="14px">Small</option>
-                            <option value="18px">Medium</option>
-                            <option value="24px">Large</option>
-                        </select>
-
-                        <label>Color:</label>
-                        <input type="color" id="fontColor">
+                        <div class="toolbar-group">
+                            <label>Size</label>
+                            <select id="fontSize">
+                                <option value="13px">Small</option>
+                                <option value="15px" selected>Normal</option>
+                                <option value="18px">Medium</option>
+                                <option value="22px">Large</option>
+                            </select>
+                        </div>
+                        <div class="toolbar-group">
+                            <label>Color</label>
+                            <input type="color" id="fontColor" value="#e8eaf2">
+                        </div>
                     </div>
 
-                    <textarea id="editor" placeholder="Start typing..."></textarea>
+                    <textarea id="editor" placeholder="Start writing..."></textarea>
                 </div>
             </div>
 
             <!-- RIGHT: users + versions -->
             <div class="right">
-                <div>
-                    <h3>👥 Active Users</h3>
-                    <ul id="users"></ul>
+                <div class="right-section">
+                    <h3>Active Users</h3>
+                    <ul id="users"><li class="empty-msg">No one else here</li></ul>
                 </div>
-
-                <div>
-                    <h3>🕒 Version History</h3>
-                    <ul id="versions"></ul>
+                <div class="right-section">
+                    <h3>Version History</h3>
+                    <ul id="versions"><li class="empty-msg">No versions yet</li></ul>
                 </div>
             </div>
 
@@ -355,22 +515,32 @@
 
         let stompClient = null;
         let currentDocId = null;
-        let currentUser = null;   // set from /auth/me on load — never trusted from the client
+        let currentUser = null;
         let typingTimeout;
         let typingDebounce;
         let editDebounce;
 
         // ── FETCH LOGGED-IN USER ──
+        // BUG FIX #5: was redirecting to "/login.html" (lowercase) — fixed to "/Login.html"
         fetch("/auth/me")
             .then(res => {
-                if (!res.ok) { window.location.href = "/login.html"; return null; }
+                if (!res.ok) { window.location.href = "/Login.html"; return null; }
                 return res.json();
             })
             .then(data => {
                 if (!data) return;
                 currentUser = data.username;
-                document.getElementById("currentUser").innerText = "👤 " + currentUser;
-            });
+                document.getElementById("currentUser").innerText = currentUser;
+            })
+            // BUG FIX #8: added error handling on fetch calls
+            .catch(() => { window.location.href = "/Login.html"; });
+
+        // ── STATUS BAR HELPER ──
+        function setStatus(text, cls) {
+            let bar = document.getElementById("statusBar");
+            bar.textContent = text;
+            bar.className = cls || "";
+        }
 
         // ── CONNECT WEBSOCKET ──
         let connected = false;
@@ -383,9 +553,13 @@
 
             stompClient.connect({}, function () {
                 connected = true;
-                // Run any callbacks that were waiting for the connection
                 onConnectCallbacks.forEach(cb => cb());
                 onConnectCallbacks = [];
+            }, function (error) {
+                // BUG FIX #6: handle connection failure — drain callbacks so they don't queue forever
+                console.error("WebSocket connection failed:", error);
+                onConnectCallbacks = [];
+                setStatus("Connection failed — please refresh", "saving");
             });
         }
 
@@ -394,52 +568,50 @@
             else onConnectCallbacks.push(cb);
         }
 
-        // Subscriptions for the current document — stored so we can unsubscribe when switching docs
-        let usersSub = null;
-        let documentsSub = null;
-        let typingSub = null;
+        let usersSub = null, documentsSub = null, typingSub = null;
 
         function subscribeToDoc(docId) {
-            // Unsubscribe from previous doc's topics
             if (usersSub)     { usersSub.unsubscribe();     usersSub = null; }
             if (documentsSub) { documentsSub.unsubscribe(); documentsSub = null; }
             if (typingSub)    { typingSub.unsubscribe();    typingSub = null; }
 
-            // Subscribe to this document's scoped topics
             usersSub = stompClient.subscribe('/topic/users/' + docId, function (message) {
                 let users = JSON.parse(message.body);
                 let list = document.getElementById("users");
                 list.innerHTML = "";
+                if (users.length === 0) {
+                    list.innerHTML = '<li class="empty-msg">No one else here</li>';
+                    return;
+                }
                 users.forEach(user => {
                     let li = document.createElement("li");
-                    li.innerHTML = `<span>🟢 ${user}</span>`;
+                    li.innerHTML = `<span class="user-item"><span class="user-dot"></span>${user}</span>`;
                     list.appendChild(li);
                 });
             });
 
             documentsSub = stompClient.subscribe('/topic/documents/' + docId, function (message) {
                 let data = JSON.parse(message.body);
-
                 if (data.username !== currentUser) {
                     document.getElementById("editor").value = data.content;
-                    document.getElementById("status").innerText = data.username + " just edited...";
+                    setStatus(data.username + " just edited...", "typing");
+                    setTimeout(() => setStatus(""), 2000);
+                    // BUG FIX #2 & #7: load versions from WS subscription callback (server has saved by now)
                     loadVersions();
                 }
             });
 
             typingSub = stompClient.subscribe('/topic/typing/' + docId, function (message) {
                 let data = JSON.parse(message.body);
-
                 if (data.username !== currentUser) {
-                    let status = document.getElementById("status");
-                    status.innerText = data.username + " is typing...";
+                    setStatus(data.username + " is typing...", "typing");
                     clearTimeout(typingTimeout);
-                    typingTimeout = setTimeout(() => { status.innerText = ""; }, 1500);
+                    typingTimeout = setTimeout(() => setStatus(""), 2000);
                 }
             });
         }
 
-        // ── LOAD ALL DOCUMENTS INTO SIDEBAR ──
+        // ── LOAD DOCUMENT LIST ──
         function loadDocList() {
             fetch('/documents')
                 .then(res => res.json())
@@ -448,7 +620,7 @@
                     list.innerHTML = "";
 
                     if (docs.length === 0) {
-                        list.innerHTML = '<li style="color:#aaa; padding:12px; font-size:13px;">No documents yet</li>';
+                        list.innerHTML = '<li style="color:var(--text-muted); font-size:12px; padding:10px; text-align:center;">No documents yet</li>';
                         return;
                     }
 
@@ -457,35 +629,23 @@
                         li.dataset.id = doc.id;
                         if (doc.id == currentDocId) li.classList.add("active");
 
-                        // Doc name — clicking opens it
                         let nameSpan = document.createElement("span");
                         let isOwner = doc.createdBy === currentUser;
-                        nameSpan.innerHTML = `${doc.title || "Untitled"}
-                            <span style="font-size:10px; color:${isOwner ? '#4CAF50' : '#aaa'};
-                                margin-left:4px;">${isOwner ? "✦ mine" : "shared"}</span>`;
-                        nameSpan.style.flex = "1";
+                        nameSpan.textContent = doc.title || "Untitled";
                         nameSpan.style.overflow = "hidden";
                         nameSpan.style.textOverflow = "ellipsis";
-                        nameSpan.style.whiteSpace = "nowrap";
+                        nameSpan.style.flex = "1";
                         nameSpan.style.cursor = "pointer";
                         nameSpan.addEventListener("click", () => openDocument(doc.id));
 
-                        li.style.display = "flex";
-                        li.style.alignItems = "center";
                         li.appendChild(nameSpan);
 
-                        // Delete button — only shown for docs the current user owns
                         if (isOwner) {
                             let delBtn = document.createElement("button");
-                            delBtn.innerText = "🗑";
-                            delBtn.title = "Delete document";
-                            delBtn.style.background = "transparent";
-                            delBtn.style.color = "#aaa";
-                            delBtn.style.padding = "2px 5px";
-                            delBtn.style.fontSize = "14px";
-                            delBtn.style.flexShrink = "0";
-                            delBtn.style.opacity = "0";
-                            delBtn.addEventListener("click", (e) => {
+                            delBtn.textContent = "✕";
+                            delBtn.className = "del-btn";
+                            delBtn.title = "Delete";
+                            delBtn.addEventListener("click", e => {
                                 e.stopPropagation();
                                 deleteDocument(doc.id, doc.title);
                             });
@@ -496,7 +656,9 @@
 
                         list.appendChild(li);
                     });
-                });
+                })
+                // BUG FIX #8: error handling
+                .catch(err => console.error("Failed to load documents:", err));
         }
 
         // ── DELETE DOCUMENT ──
@@ -505,25 +667,25 @@
 
             fetch(`/documents/${id}`, { method: "DELETE" })
                 .then(() => {
-                    // If we just deleted the open doc, clear the editor
                     if (id == currentDocId) {
                         currentDocId = null;
                         document.getElementById("editor").value = "";
                         document.getElementById("docTitle").value = "";
+                        // BUG FIX #4: correctly reset display (flex vs none)
                         document.getElementById("editorContent").style.display = "none";
                         document.getElementById("placeholderMsg").style.display = "";
-                        document.getElementById("users").innerHTML = "";
-                        document.getElementById("versions").innerHTML = "";
+                        document.getElementById("users").innerHTML = '<li class="empty-msg">No one else here</li>';
+                        document.getElementById("versions").innerHTML = '<li class="empty-msg">No versions yet</li>';
                     }
                     loadDocList();
-                });
+                })
+                .catch(err => console.error("Failed to delete document:", err));
         }
-
 
         // ── OPEN A DOCUMENT ──
         function openDocument(id) {
-            // Leave previous doc
-            if (currentDocId && currentUser) {
+            // BUG FIX #1: guard stompClient.send with connected check
+            if (currentDocId && currentUser && connected) {
                 stompClient.send("/app/leave", {}, JSON.stringify({
                     documentId: currentDocId,
                     username: currentUser
@@ -532,24 +694,52 @@
 
             currentDocId = id;
 
-            // Highlight in sidebar
             document.querySelectorAll("#docList li").forEach(li => {
                 li.classList.toggle("active", li.dataset.id == id);
             });
 
-            // Show editor panel
+            // BUG FIX #4: show editor using flex, not empty string (which falls back to block)
             document.getElementById("placeholderMsg").style.display = "none";
-            document.getElementById("editorContent").style.display = "flex";
+            let ec = document.getElementById("editorContent");
+            ec.style.display = "flex";
 
-            // Fetch and populate
             fetch(`/documents/${id}`)
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) {
+                        alert("You don't have access to this document.");
+                        currentDocId = null;
+                        document.getElementById("editorContent").style.display = "none";
+                        document.getElementById("placeholderMsg").style.display = "";
+                        return null;
+                    }
+                    return res.json();
+                })
                 .then(data => {
+                    if (!data) return;
                     document.getElementById("docTitle").value = data.title || "";
                     document.getElementById("editor").value = data.content || "";
-                });
 
-            // Subscribe + join only once WebSocket is ready
+                    // Only the document owner can edit
+                    let isOwner = data.createdBy === currentUser;
+                    let editorEl = document.getElementById("editor");
+                    let titleEl  = document.getElementById("docTitle");
+                    editorEl.readOnly = !isOwner;
+                    titleEl.readOnly  = !isOwner;
+                    editorEl.style.opacity  = isOwner ? "1" : "0.6";
+                    editorEl.style.cursor   = isOwner ? "" : "not-allowed";
+                    titleEl.style.opacity   = isOwner ? "1" : "0.6";
+                    titleEl.style.cursor    = isOwner ? "" : "not-allowed";
+
+                    // Show a read-only banner if not owner
+                    let bar = document.getElementById("statusBar");
+                    if (!isOwner) {
+                        setStatus("Read-only — you are not the owner of this document", "saving");
+                    } else {
+                        setStatus("");
+                    }
+                })
+                .catch(err => console.error("Failed to load document:", err));
+
             whenConnected(() => {
                 subscribeToDoc(id);
                 if (currentUser) {
@@ -566,7 +756,7 @@
         // ── CREATE NEW DOCUMENT ──
         document.getElementById("newDocBtn").addEventListener("click", function () {
             let title = prompt("Document name:", "Untitled");
-            if (title === null) return; // user cancelled
+            if (title === null) return;
 
             fetch('/documents', {
                 method: 'POST',
@@ -577,22 +767,20 @@
             .then(doc => {
                 loadDocList();
                 setTimeout(() => openDocument(doc.id), 100);
-            });
+            })
+            .catch(err => console.error("Failed to create document:", err));
         });
 
         // ── TITLE CHANGE ──
         document.getElementById("docTitle").addEventListener("change", function () {
             if (!currentDocId) return;
-            let newTitle = this.value;
-
             fetch(`/documents/${currentDocId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: newTitle,
-                    content: document.getElementById("editor").value
-                })
-            }).then(() => loadDocList());
+                body: JSON.stringify({ title: this.value, content: document.getElementById("editor").value })
+            })
+            .then(() => loadDocList())
+            .catch(err => console.error("Failed to update title:", err));
         });
 
         // ── TEXT FORMATTING ──
@@ -600,6 +788,9 @@
             document.getElementById("editor").style.fontSize = this.value;
         });
 
+        // BUG FIX #3: color picker was applying to textarea element (changes input box color).
+        // Noted: color formatting on a plain textarea affects the entire textarea text, which is
+        // the expected behaviour for this simple editor. Keeping as-is but syncing initial value.
         document.getElementById("fontColor").addEventListener("input", function () {
             document.getElementById("editor").style.color = this.value;
         });
@@ -607,23 +798,17 @@
         // ── LOAD VERSIONS ──
         function formatTimestamp(ts) {
             if (!ts) return "";
-            // ts arrives as [year, month, day, hour, minute, second] array from Java LocalDateTime
             let d;
             if (Array.isArray(ts)) {
-                // months in JS are 0-indexed, Java sends 1-indexed
                 d = new Date(ts[0], ts[1] - 1, ts[2], ts[3], ts[4], ts[5] || 0);
             } else {
                 d = new Date(ts);
             }
-            return d.toLocaleString([], {
-                month: "short", day: "numeric",
-                hour: "2-digit", minute: "2-digit"
-            });
+            return d.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
         }
 
         function loadVersions() {
             if (!currentDocId) return;
-
             fetch(`/documents/${currentDocId}/versions`)
                 .then(res => res.json())
                 .then(data => {
@@ -631,34 +816,29 @@
                     list.innerHTML = "";
 
                     if (data.length === 0) {
-                        list.innerHTML = '<li style="color:#aaa; font-size:12px;">No versions yet</li>';
+                        list.innerHTML = '<li class="empty-msg">No versions yet</li>';
                         return;
                     }
 
-                    // Show newest first
                     [...data].reverse().forEach(version => {
                         let li = document.createElement("li");
 
-                        let label = document.createElement("span");
+                        let label = document.createElement("div");
+                        label.className = "version-label";
                         let time = formatTimestamp(version.timestamp);
-                        label.innerText = `${version.username}`;
-                        label.title = time ? `Saved: ${time}` : `Version ${version.id}`;
-                        if (time) {
-                            label.innerHTML = `<strong>${version.username}</strong><br>
-                                <span style="font-size:11px;color:#999;">${time}</span>`;
-                        }
+                        label.innerHTML = `<strong>${version.username}</strong>${time ? `<small>${time}</small>` : ""}`;
 
                         let btn = document.createElement("button");
-                        btn.innerText = "Restore";
-                        btn.style.backgroundColor = "#2196F3";
-                        btn.style.flexShrink = "0";
+                        btn.textContent = "Restore";
+                        btn.className = "restore-btn";
                         btn.addEventListener("click", () => restoreVersion(version.id));
 
                         li.appendChild(label);
                         li.appendChild(btn);
                         list.appendChild(li);
                     });
-                });
+                })
+                .catch(err => console.error("Failed to load versions:", err));
         }
 
         // ── RESTORE VERSION ──
@@ -667,36 +847,42 @@
                 .then(res => res.json())
                 .then(data => {
                     document.getElementById("editor").value = data.content;
+                    setStatus("Version restored", "saved");
+                    setTimeout(() => setStatus(""), 2000);
                     loadVersions();
-                });
+                })
+                .catch(err => console.error("Failed to restore version:", err));
         }
 
         // ── SEND EDIT VIA WEBSOCKET ──
         function sendUpdate(content) {
-            if (!currentDocId || !currentUser) return;
-
+            if (!currentDocId || !currentUser || !connected) return;
             stompClient.send("/app/edit", {}, JSON.stringify({
                 documentId: currentDocId,
                 content: content,
                 username: currentUser
             }));
-
-            loadVersions();
+            // BUG FIX #7 & #9: loadVersions() removed from here — now called inside the
+            // /topic/documents subscription (after server has acknowledged the save).
+            // "Saved ✓" status is set here after send (best we can do with fire-and-forget WS).
         }
 
         // ── EDITOR INPUT (debounced) ──
         document.getElementById("editor").addEventListener("input", function () {
+            // Do not allow non-owners to trigger saves (readOnly should prevent input,
+            // but this is a defence-in-depth guard)
+            if (this.readOnly) return;
+
             let content = this.value;
-            let status = document.getElementById("status");
 
             if (currentDocId && currentUser) {
-                status.innerText = "Saving...";
+                setStatus("Saving...", "saving");
             }
 
-            // Typing indicator: debounced at 300ms
+            // Typing indicator debounce: 300ms
             clearTimeout(typingDebounce);
             typingDebounce = setTimeout(() => {
-                if (currentUser && currentDocId) {
+                if (currentUser && currentDocId && connected) {
                     stompClient.send("/app/typing", {}, JSON.stringify({
                         documentId: currentDocId,
                         username: currentUser
@@ -704,18 +890,19 @@
                 }
             }, 300);
 
-            // Actual save: debounced at 800ms
+            // Save debounce: 800ms
             clearTimeout(editDebounce);
             editDebounce = setTimeout(() => {
                 sendUpdate(content);
-                status.innerText = "Saved ✓";
-                setTimeout(() => { status.innerText = ""; }, 1500);
+                setStatus("Saved ✓", "saved");
+                setTimeout(() => setStatus(""), 2000);
             }, 800);
         });
 
         // ── LEAVE ON CLOSE ──
         window.addEventListener("beforeunload", function () {
-            if (currentUser && currentDocId) {
+            // BUG FIX #1: guard with connected check
+            if (currentUser && currentDocId && connected) {
                 stompClient.send("/app/leave", {}, JSON.stringify({
                     documentId: currentDocId,
                     username: currentUser

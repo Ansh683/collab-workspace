@@ -2,68 +2,126 @@
 <html>
 <head>
     <title>Collab Workspace – Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #0f1117;
+            --surface: #181c27;
+            --surface2: #1e2333;
+            --border: #2a2f42;
+            --accent: #5b7cf6;
+            --accent-hover: #4a68e0;
+            --green: #34d399;
+            --text: #e8eaf2;
+            --text-muted: #6b7280;
+            --text-dim: #9ca3af;
+            --danger: #f87171;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: Arial, sans-serif;
-            background: #f5f7fa;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* subtle background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* glow */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px; left: 50%;
+            transform: translateX(-50%);
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(91,124,246,0.12) 0%, transparent 70%);
+            pointer-events: none;
         }
 
         .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            padding: 40px;
-            width: 360px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px 36px;
+            width: 380px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.4);
         }
 
-        .logo {
+        .logo-area {
             text-align: center;
-            font-size: 32px;
-            margin-bottom: 8px;
+            margin-bottom: 28px;
+        }
+
+        .logo-dot {
+            display: inline-block;
+            width: 42px; height: 42px;
+            background: var(--accent);
+            border-radius: 12px;
+            font-size: 22px;
+            line-height: 42px;
+            text-align: center;
+            margin-bottom: 12px;
+            box-shadow: 0 0 24px rgba(91,124,246,0.4);
         }
 
         h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 6px;
-            font-size: 20px;
+            font-family: 'DM Serif Display', serif;
+            font-size: 22px;
+            color: var(--text);
+            margin-bottom: 4px;
         }
 
         .subtitle {
-            text-align: center;
-            color: #999;
+            color: var(--text-muted);
             font-size: 13px;
-            margin-bottom: 28px;
         }
 
         .tabs {
             display: flex;
-            border-bottom: 2px solid #eee;
+            gap: 4px;
+            background: var(--surface2);
+            border-radius: 8px;
+            padding: 4px;
             margin-bottom: 24px;
         }
 
         .tab {
             flex: 1;
             text-align: center;
-            padding: 10px;
+            padding: 8px;
             cursor: pointer;
-            color: #aaa;
-            font-size: 14px;
-            font-weight: bold;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -2px;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 6px;
             transition: all 0.2s;
         }
 
         .tab.active {
-            color: #4CAF50;
-            border-bottom-color: #4CAF50;
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
         }
 
         .form-group {
@@ -72,82 +130,98 @@
 
         label {
             display: block;
-            font-size: 13px;
-            color: #555;
-            margin-bottom: 5px;
-            font-weight: bold;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         input[type="text"],
         input[type="password"] {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
+            padding: 11px 14px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
             font-size: 14px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        input:focus { border-color: #4CAF50; }
+        input::placeholder { color: var(--text-muted); }
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(91,124,246,0.15);
+        }
 
-        button[type="submit"] {
+        .submit-btn {
             width: 100%;
-            padding: 11px;
-            background: #4CAF50;
+            padding: 12px;
+            background: var(--accent);
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: bold;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
             cursor: pointer;
             margin-top: 6px;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
         }
 
-        button[type="submit"]:hover { background: #45a049; }
+        .submit-btn:hover { background: var(--accent-hover); }
+        .submit-btn:active { transform: scale(0.99); }
 
         .message {
-            text-align: center;
-            font-size: 13px;
             margin-top: 14px;
-            padding: 8px;
-            border-radius: 6px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+            display: none;
         }
 
-        .message.error { background: #fdecea; color: #c62828; }
-        .message.success { background: #e8f5e9; color: #2e7d32; }
+        .message.error { background: rgba(248,113,113,0.12); color: var(--danger); border: 1px solid rgba(248,113,113,0.2); }
+        .message.success { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div class="logo">📝</div>
-    <h2>Collab Workspace</h2>
-    <p class="subtitle">Real-time collaborative document editing</p>
+    <div class="logo-area">
+        <div class="logo-dot">📝</div>
+        <h2>Collab Workspace</h2>
+        <p class="subtitle">Real-time collaborative editing</p>
+    </div>
 
     <div class="tabs">
         <div class="tab active" id="loginTab" onclick="showTab('login')">Login</div>
         <div class="tab" id="registerTab" onclick="showTab('register')">Register</div>
     </div>
 
-    <!-- LOGIN FORM — submitted natively to Spring Security -->
+    <!-- LOGIN FORM -->
     <div id="loginForm">
         <form method="POST" action="/auth/login">
             <div class="form-group">
                 <label>Username</label>
-                <input type="text" name="username" placeholder="Enter username" required autofocus>
+                <input type="text" name="username" placeholder="Enter your username" required autofocus>
             </div>
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" name="password" placeholder="Enter password" required>
+                <input type="password" name="password" placeholder="Enter your password" required>
             </div>
-            <button type="submit">Login</button>
+            <button type="submit" class="submit-btn">Login</button>
         </form>
-        <div id="loginMsg" class="message" style="display:none;"></div>
+        <div id="loginMsg" class="message"></div>
     </div>
 
-    <!-- REGISTER FORM — submitted via fetch -->
+    <!-- REGISTER FORM -->
+    <!-- BUG FIX #1: Not wrapping in a <form> avoids accidental native form submission.
+         Button is type="button" (not "submit") to prevent any default submit behaviour. -->
     <div id="registerForm" style="display:none;">
         <div class="form-group">
             <label>Username</label>
@@ -155,15 +229,17 @@
         </div>
         <div class="form-group">
             <label>Password</label>
-            <input type="password" id="regPassword" placeholder="At least 4 characters">
+            <!-- BUG FIX #2: minlength attribute enforces minimum at the HTML level too -->
+            <input type="password" id="regPassword" placeholder="At least 4 characters" minlength="4">
         </div>
-        <button type="submit" onclick="register()">Create Account</button>
-        <div id="registerMsg" class="message" style="display:none;"></div>
+        <!-- BUG FIX #1: type="button" prevents any accidental form submission -->
+        <button type="button" class="submit-btn" onclick="register()">Create Account</button>
+        <div id="registerMsg" class="message"></div>
     </div>
 </div>
 
 <script>
-    // Show error/logout messages from URL params
+    // Show login messages from URL params
     const params = new URLSearchParams(window.location.search);
     if (params.get("error")) {
         let msg = document.getElementById("loginMsg");
@@ -175,7 +251,7 @@
         let msg = document.getElementById("loginMsg");
         msg.style.display = "block";
         msg.className = "message success";
-        msg.innerText = "You have been logged out.";
+        msg.innerText = "You have been signed out.";
     }
 
     function showTab(tab) {
@@ -190,10 +266,17 @@
         let password = document.getElementById("regPassword").value;
         let msg = document.getElementById("registerMsg");
 
+        // BUG FIX #2: validate minimum password length before sending to server
         if (!username || !password) {
             msg.style.display = "block";
             msg.className = "message error";
             msg.innerText = "Please fill in all fields.";
+            return;
+        }
+        if (password.length < 4) {
+            msg.style.display = "block";
+            msg.className = "message error";
+            msg.innerText = "Password must be at least 4 characters.";
             return;
         }
 
@@ -207,18 +290,28 @@
             msg.style.display = "block";
             if (text === "Registered successfully") {
                 msg.className = "message success";
-                msg.innerText = "Account created! You can now log in.";
+                msg.innerText = "Account created! Redirecting to login...";
                 setTimeout(() => showTab("login"), 1500);
             } else {
                 msg.className = "message error";
                 msg.innerText = text;
             }
+        })
+        .catch(() => {
+            msg.style.display = "block";
+            msg.className = "message error";
+            msg.innerText = "Network error. Please try again.";
         });
     }
 
-    // Allow Enter key on register form
+    // BUG FIX #3: Enter key on register only fires when register tab is focused AND
+    // a register input is actively focused — prevents cross-tab interference.
     document.addEventListener("keydown", function(e) {
-        if (e.key === "Enter" && document.getElementById("registerForm").style.display !== "none") {
+        if (e.key !== "Enter") return;
+        let regForm = document.getElementById("registerForm");
+        if (regForm.style.display === "none") return;
+        // Only trigger if focus is within the register form
+        if (regForm.contains(document.activeElement)) {
             register();
         }
     });
